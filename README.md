@@ -2,6 +2,8 @@
 
 A defensive, educational honeypot that simulates a vulnerable LLM-powered customer-support endpoint, classifies prompt-injection attempts, and logs everything to a structured telemetry store with a Streamlit dashboard.
 
+![Dashboard screenshot](screenshots/dashboard_full.png)
+
 Built from **Project 2.1** of the *2026 AI × Cybersecurity project catalogue*. Intended as a portfolio piece and a hands-on intuition builder for how prompt-injection attacks are constructed, encoded, and chained.
 
 ## What it does
