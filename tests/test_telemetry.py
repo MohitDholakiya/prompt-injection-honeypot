@@ -322,3 +322,38 @@ def test_sqlite_survives_reopen(tmp_path: Path):
     # reopen
     t2 = Telemetry(db_path=db, jsonl_path=tmp_path / "x.jsonl")
     assert t2.count() == 1
+
+
+# ---- attack-event counting (dashboard fix) ----------------------------
+
+
+def test_count_attack_events_no_double_count(tmp_path: Path):
+    """An event with multiple attack tags should count as ONE attack event,
+    not one per tag. The dashboard used to do `sum(by_tag.values())` which
+    double-counted multi-tag events (hence the 115.8% attack ratio bug).
+    """
+    from honeypot.dashboard import _count_attack_events
+    t = Telemetry(db_path=tmp_path / "test.db", jsonl_path=tmp_path / "x.jsonl")
+    # single-tag attacks
+    for _ in range(3):
+        t.record(new_record(
+            src_ip="1.1.1.1", user_agent="x", endpoint="/", user="u",
+            message="ignore", tags=["instruction_override"],
+            severity=Severity.HIGH, matched_patterns=[],
+            response_status=200, response_excerpt="x",
+        ))
+    # multi-tag attack — must count as ONE event
+    t.record(new_record(
+        src_ip="1.1.1.1", user_agent="x", endpoint="/", user="u",
+        message="multi", tags=["instruction_override", "prompt_leak_secrets", "tool_call_extraction"],
+        severity=Severity.HIGH, matched_patterns=[],
+        response_status=200, response_excerpt="x",
+    ))
+    # benign
+    t.record(new_record(
+        src_ip="1.1.1.1", user_agent="x", endpoint="/", user="u",
+        message="hi", tags=["benign"], severity=Severity.NONE,
+        matched_patterns=[], response_status=200, response_excerpt="x",
+    ))
+    assert _count_attack_events(t) == 4  # 3 single + 1 multi, NOT 3 + 3 + 1
+    assert t.count() == 5  # total events includes the benign one
