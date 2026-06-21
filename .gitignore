@@ -23,3 +23,6 @@ telemetry.jsonl
 
 # Streamlit
 .streamlit/secrets.toml
+# Local runtime data + screenshot (regenerate via /tmp/screenshot_full.py)
+data/
+screenshots/dashboard.png
