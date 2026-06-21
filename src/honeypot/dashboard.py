@@ -9,6 +9,7 @@ that's ./data/honeypot.db; override with the HONEYPOT_DB env var.
 
 from __future__ import annotations
 
+import json
 import os
 import sys
 from datetime import datetime, timedelta, timezone
@@ -38,6 +39,25 @@ def get_telemetry() -> Telemetry:
     db_path = Path(os.environ.get("HONEYPOT_DB", "./data/honeypot.db"))
     jsonl_path = Path(os.environ.get("HONEYPOT_JSONL", "./data/honeypot.jsonl"))
     return Telemetry(db_path=db_path, jsonl_path=jsonl_path)
+
+
+def _count_attack_events(telemetry: Telemetry) -> int:
+    """Count rows that are attacks, with no double-count for multi-tag events.
+
+    The naive `sum(by_tag.values())` over-counts because one row can carry
+    multiple attack tags (e.g. instruction_override + prompt_leak_secrets).
+    We count each row that has at least one non-benign, non-report tag.
+    """
+    count = 0
+    with telemetry._connect() as conn:  # noqa: SLF001
+        for row in conn.execute("SELECT tags FROM events"):
+            try:
+                row_tags = set(json.loads(row["tags"]))
+            except (json.JSONDecodeError, TypeError):
+                continue
+            if row_tags - {"benign", "report_finding"}:
+                count += 1
+    return count
 
 
 def severity_label(s: int | Severity) -> str:
@@ -77,13 +97,11 @@ def main() -> None:
     # ---- top stats ---------------------------------------------------
     total = telemetry.count()
     by_tag = telemetry.count_by_tag()
-    attack_count = sum(
-        v for k, v in by_tag.items() if k != "benign" and k != "report_finding"
-    )
+    attack_count = _count_attack_events(telemetry)
 
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Total events", total)
-    col2.metric("Attack attempts", attack_count)
+    col2.metric("Attack events", attack_count)
     col3.metric("Distinct attack tags", len([k for k in by_tag if k not in ("benign", "report_finding")]))
     if total:
         col4.metric("Attack ratio", f"{(attack_count / total) * 100:.1f}%")
