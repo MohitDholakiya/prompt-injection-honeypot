@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Telemetry data (generated at runtime — do not commit)
+data/
+*.db
+*.sqlite
+*.sqlite3
+telemetry.jsonl
+
+# Editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Streamlit
+.streamlit/secrets.toml
