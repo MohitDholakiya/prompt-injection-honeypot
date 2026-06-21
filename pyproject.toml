@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "prompt-injection-honeypot"
+version = "0.1.0"
+description = "Defensive honeypot that classifies and logs prompt-injection attempts."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "Mohit Dholakiya"}]
+keywords = ["security", "llm", "prompt-injection", "honeypot", "owasp"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Education",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+dependencies = [
+    "fastapi>=0.110,<0.120",
+    "uvicorn[standard]>=0.27,<0.30",
+    "pydantic>=2.5,<3.0",
+    "streamlit>=1.32,<2.0",
+    "pandas>=2.1,<3.0",
+    "plotly>=5.18,<6.0",
+    "httpx>=0.26,<0.29",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4,<9.0",
+    "pytest-asyncio>=0.23,<1.0",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/MohitDholakiya/prompt-injection-honeypot"
+"Issues" = "https://github.com/MohitDholakiya/prompt-injection-honeypot/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra -q"
