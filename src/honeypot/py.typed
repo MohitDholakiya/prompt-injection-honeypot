@@ -1,0 +1,1 @@
+"""Marker file so `src/honeypot` is importable as `honeypot` when installed in editable mode."""
